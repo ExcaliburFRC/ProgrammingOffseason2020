@@ -7,16 +7,21 @@
 
 package frc.robot.subsystems;
 
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.commands.chassi.TankDrive;
 
 public class Chassi extends SubsystemBase {
   private CANSparkMax rightMaster, rightSlave, leftMaster, leftSlave;
   private CANEncoder rightEncoder, leftEncoder;
+  private AHRS gyro;
 
   /**
    * Creates a new Chassi.
@@ -33,15 +38,25 @@ public class Chassi extends SubsystemBase {
     rightEncoder = rightMaster.getAlternateEncoder();
     leftEncoder = leftMaster.getAlternateEncoder();
 
-    
+    gyro = new AHRS(SPI.Port.kMXP);
+
+    setDefaultCommand(new TankDrive());
   }
 
   public void setSpeeds(double left, double right){
     rightMaster.set(right);
     leftMaster.set(left);
   }
-
-  public double getRightEncoder(){
+  
+  public double getGyroAngle() {
+    return gyro.getAngle();
+  }
+    
+  public void resetGyro() {
+    gyro.reset();
+  }
+  
+  public double getRightEncoder() {
     return rightEncoder.getPosition();
   }
   
@@ -49,8 +64,17 @@ public class Chassi extends SubsystemBase {
     return leftEncoder.getPosition();
   }
 
+  public void resetEncoders() {
+    rightEncoder.setPosition(0);
+    leftEncoder.setPosition(0);
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    SmartDashboard.putNumber("gyro heading", getGyroAngle());
+    SmartDashboard.putNumber("right encoder", getRightEncoder());
+    SmartDashboard.putNumber("left encoder", getLeftEncoder());
   }
 }
+
